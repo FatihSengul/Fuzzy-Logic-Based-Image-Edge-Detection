@@ -1,0 +1,45 @@
+package com.fsengul.fuzzy.edgedetection.fuzzy;
+
+
+import com.fsengul.fuzzy.edgedetection.interfaces.EdgeDetector;
+
+import java.awt.*;
+import java.awt.image.BufferedImage;
+
+public class FuzzyLogicEdgeDetector implements EdgeDetector {
+
+    private final ImageToFuzzyNumbersConverter imageToFuzzyNumbersConverter = new ImageToFuzzyNumbersConverter();
+    
+    private final MamdaniFIS mamdani = new MamdaniFIS();
+
+    @Override
+    public BufferedImage detectEdges(BufferedImage grayscaleImage) {
+        BufferedImage resultGrayscaleImage = new BufferedImage(grayscaleImage.getWidth(), grayscaleImage.getHeight(), grayscaleImage.getType());
+        ImageFuzzyNumber [][] fuzzyNumbers = imageToFuzzyNumbersConverter.convertGrayLevelImageToFuzzyNumbers(grayscaleImage);
+        for (int i = 1; i < grayscaleImage.getWidth() - 1; i++) {
+            for (int j = 1; j < grayscaleImage.getHeight() - 1; j++) {
+                double alphaMax = mamdani.resolve(fuzzyNumbers, i, j);
+                int resultGrayLevel = (int) imageToFuzzyNumbersConverter.convertFuzzyNumberToEdgeGrayLevel(alphaMax);
+                Color resultColor = new Color(resultGrayLevel, resultGrayLevel, resultGrayLevel);
+                resultGrayscaleImage.setRGB(i, j, resultColor.getRGB());
+            }
+        }
+        return resultGrayscaleImage;
+    }
+    
+    public void modifyBlackMembershipFunction(Integer blackStartGray, Integer blackEndGray) {
+        imageToFuzzyNumbersConverter.modifyBlackMembershipFunction(blackStartGray, blackEndGray);
+    }
+    
+    public void modifyWhiteMembershipFunction(Integer whiteStartGray, Integer whiteEndGray) {
+        imageToFuzzyNumbersConverter.modifyWhiteMembershipFunction(whiteStartGray, whiteEndGray);
+    }
+    
+    public void modifyEdgeMembershipFunction(Integer edgeEnd) {
+        imageToFuzzyNumbersConverter.modifyEdgeMembershipFunction(edgeEnd);
+    }
+    
+    public void refreshMembershipFunctions() {
+        imageToFuzzyNumbersConverter.refreshMembershipFunction();
+    }
+}
